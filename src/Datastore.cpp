@@ -17,11 +17,12 @@ void DatastoreClass::loop()
 {
     if (Hoymiles.isAllRadioIdle() && _updateTimeout.occured()) {
 
-        uint8_t isProducing = 0;
         uint8_t isReachable = 0;
         uint8_t pollEnabledCount = 0;
 
         std::lock_guard<std::mutex> lock(_mutex);
+
+        _isProducing = 0;
 
         _totalAcYieldTotalEnabled = 0;
         _totalAcYieldTotalDigits = 0;
@@ -57,7 +58,7 @@ void DatastoreClass::loop()
             }
 
             if (inv->isProducing()) {
-                isProducing++;
+                _isProducing++;
             } else {
                 if (inv->getEnablePolling()) {
                     _isAllEnabledProducing = false;
@@ -99,7 +100,7 @@ void DatastoreClass::loop()
             }
         }
 
-        _isAtLeastOneProducing = isProducing > 0;
+        _isAtLeastOneProducing = _isProducing > 0;
         _isAtLeastOneReachable = isReachable > 0;
         _isAtLeastOnePollEnabled = pollEnabledCount > 0;
 
@@ -203,4 +204,12 @@ bool DatastoreClass::getIsAtLeastOnePollEnabled()
 {
     std::lock_guard<std::mutex> lock(_mutex);
     return _isAtLeastOnePollEnabled;
+}
+
+uint8_t DatastoreClass::getTotalProducing()
+{
+    DAT_SEMAPHORE_TAKE();
+    uint8_t retval = _isProducing;
+    DAT_SEMAPHORE_GIVE();
+    return retval;
 }
