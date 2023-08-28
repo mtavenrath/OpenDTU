@@ -208,8 +208,6 @@ bool DatastoreClass::getIsAtLeastOnePollEnabled()
 
 uint8_t DatastoreClass::getTotalProducing()
 {
-    DAT_SEMAPHORE_TAKE();
-    uint8_t retval = _isProducing;
-    DAT_SEMAPHORE_GIVE();
-    return retval;
+    std::lock_guard<std::mutex> lock(_mutex);
+    return _isProducing;
 }
